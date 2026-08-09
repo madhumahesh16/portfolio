@@ -1,0 +1,1945 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balagam Madhu Mahesh — A Developer's Journey Through Code</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000000;
+            --panel: rgba(0, 0, 0, 0.65);
+            --border: rgba(6, 211, 12, 0.22);
+            --ink: #ffffff;
+            --ink-dim: rgba(255, 255, 255, 0.6);
+            --violet: #06d30c;
+            --cyan: #06d30c;
+            --amber: #06d30c;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+            overflow-x: hidden;
+        }
+
+        ::selection {
+            background: var(--violet);
+            color: #000;
+        }
+
+        #scene {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            display: block;
+        }
+
+        #vignette {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.82) 100%);
+        }
+
+        #grain {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            opacity: .035;
+            mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        #ui {
+            position: relative;
+            z-index: 3;
+        }
+
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            background: #000000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 18px;
+            transition: opacity .8s ease;
+        }
+
+        #loader .bar {
+            width: 220px;
+            height: 1px;
+            background: rgba(6, 211, 12, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #loader .bar span {
+            position: absolute;
+            inset: 0;
+            width: 0%;
+            background: linear-gradient(90deg, var(--cyan), var(--violet));
+            transition: width .2s ease;
+        }
+
+        #loader p {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: .2em;
+            color: var(--ink-dim);
+            text-transform: uppercase;
+        }
+
+        .cursor {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--cyan);
+            pointer-events: none;
+            z-index: 60;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: screen;
+            transition: width .25s, height .25s, background .25s;
+            display: none;
+        }
+
+        @media (min-width:900px) {
+            .cursor {
+                display: block;
+            }
+
+            body {
+                cursor: none;
+            }
+
+            a,
+            button {
+                cursor: none;
+            }
+        }
+
+        .cursor.big {
+            width: 34px;
+            height: 34px;
+            background: transparent;
+            border: 1px solid var(--cyan);
+        }
+
+        nav.dots {
+            position: fixed;
+            right: 26px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        @media (max-width:800px) {
+            nav.dots {
+                display: none;
+            }
+        }
+
+        nav.dots a {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            display: block;
+            transition: .3s;
+        }
+
+        nav.dots a.active {
+            background: var(--cyan);
+            box-shadow: 0 0 10px var(--cyan);
+        }
+
+        .eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: .32em;
+            text-transform: uppercase;
+            color: var(--cyan);
+            margin: 0 0 18px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .eyebrow::before {
+            content: '';
+            width: 22px;
+            height: 1px;
+            background: var(--cyan);
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            margin: 0;
+            letter-spacing: -.01em;
+        }
+
+        .panel {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 10vh 8vw;
+            position: relative;
+        }
+
+        .card {
+            max-width: 640px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            padding: 42px 44px;
+            backdrop-filter: blur(18px) saturate(140%);
+            -webkit-backdrop-filter: blur(18px) saturate(140%);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+        }
+
+        @media (max-width:700px) {
+            .card {
+                padding: 28px 24px;
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .panel {
+                padding: 8vh 6vw;
+                min-height: auto;
+                padding-top: 12vh;
+                padding-bottom: 12vh;
+            }
+
+            .hero {
+                padding-bottom: 10vh;
+            }
+
+            .stat-row {
+                gap: 28px;
+            }
+
+            .stat b {
+                font-size: 1.7rem;
+            }
+
+            .milestones {
+                gap: 26px;
+            }
+
+            .door-row {
+                gap: 26px;
+            }
+
+            .arch-step {
+                flex-wrap: wrap;
+                gap: 4px;
+                font-size: 12px;
+            }
+
+            .proj-card h3 {
+                font-size: 1.15rem;
+            }
+
+            footer.end {
+                padding: 6vh 6vw 8vh;
+            }
+        }
+
+        @media (max-width:480px) {
+            .panel {
+                padding: 7vh 5vw;
+            }
+
+            .card {
+                padding: 22px 18px;
+            }
+
+            .hero h1 {
+                font-size: clamp(2rem, 9vw, 2.8rem);
+            }
+
+            .hero p.tag {
+                font-size: 14.5px;
+            }
+
+            .cta-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .btn {
+                text-align: center;
+                padding: 14px 20px;
+            }
+
+            .stat-row {
+                gap: 20px;
+            }
+
+            .stat b {
+                font-size: 1.5rem;
+            }
+
+            .milestones {
+                gap: 20px;
+            }
+
+            .milestone p {
+                max-width: 100%;
+            }
+
+            .chip {
+                font-size: 10.5px;
+                padding: 7px 12px;
+            }
+
+            .wall-grid {
+                grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+                gap: 6px;
+            }
+
+            .wall-node {
+                font-size: 8px;
+            }
+
+            .contact-links {
+                font-size: 12px;
+            }
+
+            .fab-stack {
+                right: 14px;
+                bottom: 14px;
+                gap: 10px;
+            }
+
+            .fab {
+                width: 48px;
+                height: 48px;
+            }
+
+            .fab svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .chat-panel {
+                right: 12px;
+                left: 12px;
+                width: auto;
+                bottom: 130px;
+                height: min(420px, calc(100vh - 160px));
+            }
+
+            .scroll-hint {
+                display: none;
+            }
+        }
+
+        .hero {
+            min-height: 100vh;
+            align-items: flex-end;
+            padding-bottom: 14vh;
+        }
+
+        .hero .card {
+            max-width: 720px;
+            background: transparent;
+            border: none;
+            backdrop-filter: none;
+            box-shadow: none;
+            padding: 0;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.4rem, 6vw, 4.6rem);
+            line-height: 1.02;
+            color: var(--ink);
+        }
+
+        .hero .role {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(13px, 1.6vw, 16px);
+            letter-spacing: .18em;
+            color: var(--cyan);
+            text-transform: uppercase;
+            margin-top: 18px;
+        }
+
+        .hero p.tag {
+            margin-top: 20px;
+            color: var(--ink-dim);
+            font-size: 16px;
+            max-width: 480px;
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .cta-row {
+            display: flex;
+            gap: 16px;
+            margin-top: 38px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: .16em;
+            text-transform: uppercase;
+            padding: 15px 26px;
+            border-radius: 2px;
+            text-decoration: none;
+            transition: .3s;
+            display: inline-block;
+            border: 1px solid transparent;
+        }
+
+        .btn.primary {
+            background: var(--ink);
+            color: #000000;
+        }
+
+        .btn.primary:hover {
+            background: var(--cyan);
+            box-shadow: 0 0 30px rgba(6, 211, 12, .4);
+        }
+
+        .btn.ghost {
+            border-color: rgba(255, 255, 255, .28);
+            color: var(--ink);
+        }
+
+        .btn.ghost:hover {
+            border-color: var(--ink);
+            background: rgba(255, 255, 255, .04);
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 5vh;
+            left: 8vw;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: .2em;
+            color: var(--ink-dim);
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .scroll-hint .line {
+            width: 1px;
+            height: 34px;
+            background: linear-gradient(var(--cyan), transparent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: .2
+            }
+
+            50% {
+                opacity: 1
+            }
+        }
+
+        .stat-row {
+            display: flex;
+            gap: 46px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stat b {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: var(--ink);
+            display: block;
+        }
+
+        .stat span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
+            letter-spacing: .14em;
+            color: var(--ink-dim);
+            text-transform: uppercase;
+        }
+
+        .milestones {
+            display: flex;
+            gap: 50px;
+            margin-top: 34px;
+            flex-wrap: wrap;
+        }
+
+        .milestone {
+            border-left: 1px solid rgba(6, 211, 12, .4);
+            padding-left: 16px;
+        }
+
+        .milestone b {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--violet);
+            font-size: 12px;
+            letter-spacing: .1em;
+        }
+
+        .milestone p {
+            margin: 6px 0 0;
+            font-size: 14px;
+            color: var(--ink-dim);
+            max-width: 180px;
+        }
+
+        .chip-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 26px;
+            max-width: 560px;
+        }
+
+        .chip {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            letter-spacing: .05em;
+            padding: 9px 14px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--ink-dim);
+            transition: .3s;
+        }
+
+        .chip:hover {
+            color: var(--ink);
+            border-color: var(--cyan);
+            background: rgba(6, 211, 12, .08);
+        }
+
+        .arch-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            margin-top: 28px;
+        }
+
+        .arch-step {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            letter-spacing: .06em;
+            color: var(--ink);
+            padding: 10px 0;
+            border-bottom: 1px dashed var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .arch-step small {
+            color: var(--ink-dim);
+            font-weight: 400;
+        }
+
+        .arch-step:last-child {
+            border-bottom: none;
+        }
+
+        .proj-card {
+            margin-bottom: 26px;
+            padding-bottom: 26px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .proj-card:last-child {
+            border: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .proj-card h3 {
+            font-size: 1.35rem;
+            color: var(--ink);
+        }
+
+        .proj-card .role {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
+            color: var(--amber);
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            margin: 6px 0 10px;
+        }
+
+        .proj-card p {
+            font-size: 14.5px;
+            color: var(--ink-dim);
+            line-height: 1.6;
+            margin: 0 0 10px;
+        }
+
+        .proj-card .tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .proj-card .tags span {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--cyan);
+            border: 1px solid rgba(6, 211, 12, .3);
+            padding: 3px 9px;
+            border-radius: 12px;
+        }
+
+        .door-row {
+            display: flex;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .door {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .door b {
+            font-size: 1.1rem;
+            color: var(--ink);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .door small {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--violet);
+            font-size: 10.5px;
+            margin: 6px 0 12px;
+            letter-spacing: .08em;
+        }
+
+        .door ul {
+            margin: 0;
+            padding-left: 16px;
+            color: var(--ink-dim);
+            font-size: 13.5px;
+            line-height: 1.8;
+        }
+
+        .transition-line {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin: 22px 0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--ink-dim);
+            letter-spacing: .1em;
+        }
+
+        .transition-line .arrow {
+            color: var(--cyan);
+        }
+
+        .wall-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 8px;
+            margin-top: 26px;
+            max-width: 560px;
+        }
+
+        .wall-node {
+            aspect-ratio: 1;
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            color: var(--ink-dim);
+            text-align: center;
+            padding: 4px;
+            transition: .3s;
+        }
+
+        .wall-node:hover {
+            border-color: var(--violet);
+            color: var(--ink);
+            box-shadow: 0 0 20px rgba(6, 211, 12, .25);
+        }
+
+        .code-line {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: var(--cyan);
+            margin-top: 24px;
+        }
+
+        .code-line::before {
+            content: '> ';
+            color: var(--violet);
+        }
+
+        .typed-cursor {
+            display: inline-block;
+            width: 7px;
+            height: 14px;
+            background: var(--cyan);
+            margin-left: 3px;
+            animation: blink 1s step-end infinite;
+            vertical-align: -1px;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0
+            }
+        }
+
+        .contact-links {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 26px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+        }
+
+        .contact-links a {
+            color: var(--ink);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: .3s;
+        }
+
+        .contact-links a:hover {
+            border-color: var(--cyan);
+            color: var(--cyan);
+        }
+
+        .contact-links span {
+            color: var(--ink-dim);
+            display: inline-block;
+            width: 70px;
+            font-size: 10.5px;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+
+        footer.end {
+            padding: 8vh 8vw 12vh;
+            text-align: center;
+            position: relative;
+        }
+
+        footer.end h2 {
+            font-size: clamp(1.6rem, 4vw, 2.6rem);
+            color: var(--ink);
+        }
+
+        footer.end .role2 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            letter-spacing: .24em;
+            color: var(--cyan);
+            margin-top: 14px;
+            text-transform: uppercase;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .reveal.in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .reveal {
+                transition: none;
+                opacity: 1;
+                transform: none;
+            }
+
+            html {
+                scroll-behavior: auto;
+            }
+        }
+
+        /* ---------- floating action buttons ---------- */
+        .fab-stack {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 40;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 14px;
+        }
+
+        .fab {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: #000000;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .6), 0 0 0 1px rgba(6, 211, 12, .15);
+            transition: .25s;
+        }
+
+        .fab:hover {
+            border-color: var(--cyan);
+            box-shadow: 0 10px 34px rgba(0, 0, 0, .7), 0 0 22px rgba(6, 211, 12, .45);
+            transform: translateY(-2px);
+        }
+
+        .fab svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .fab.whatsapp {
+            color: var(--cyan);
+        }
+
+        /* ---------- chatbot ---------- */
+        .chat-panel {
+            position: fixed;
+            right: 22px;
+            bottom: 158px;
+            z-index: 41;
+            width: min(340px, calc(100vw - 44px));
+            height: min(460px, calc(100vh - 140px));
+            background: #000000;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, .75), 0 0 0 1px rgba(6, 211, 12, .12);
+            transform: translateY(16px) scale(.97);
+            opacity: 0;
+            pointer-events: none;
+            transition: .25s ease;
+        }
+
+        .chat-panel.open {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .chat-head {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-head b {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px;
+            color: var(--ink);
+        }
+
+        .chat-head span {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: .1em;
+            color: var(--cyan);
+            text-transform: uppercase;
+            margin-top: 3px;
+        }
+
+        .chat-head button {
+            background: none;
+            border: none;
+            color: var(--ink-dim);
+            font-size: 18px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .chat-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .chat-msg {
+            max-width: 84%;
+            font-size: 13px;
+            line-height: 1.55;
+            padding: 9px 12px;
+            border-radius: 4px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 300;
+        }
+
+        .chat-msg.bot {
+            align-self: flex-start;
+            background: rgba(6, 211, 12, .08);
+            border: 1px solid rgba(6, 211, 12, .25);
+            color: var(--ink);
+        }
+
+        .chat-msg.user {
+            align-self: flex-end;
+            background: var(--ink);
+            color: #000000;
+        }
+
+        .chat-quick {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 0 18px 12px;
+        }
+
+        .chat-quick button {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10.5px;
+            letter-spacing: .04em;
+            padding: 7px 10px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--ink-dim);
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .chat-quick button:hover {
+            border-color: var(--cyan);
+            color: var(--ink);
+        }
+
+        .chat-input-row {
+            display: flex;
+            border-top: 1px solid var(--border);
+        }
+
+        .chat-input-row input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 14px 16px;
+            color: var(--ink);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+        }
+
+        .chat-input-row input::placeholder {
+            color: var(--ink-dim);
+        }
+
+        .chat-input-row button {
+            background: none;
+            border: none;
+            color: var(--cyan);
+            padding: 0 18px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            letter-spacing: .1em;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loader">
+        <p>Madhu Mahesh Balagam</p>
+        <div class="bar"><span id="loadbar"></span></div>
+    </div>
+
+    <canvas id="scene"></canvas>
+    <div id="vignette"></div>
+    <div id="grain"></div>
+    <div class="cursor" id="cursor"></div>
+
+    <nav class="dots" id="dots"></nav>
+
+    <div class="chat-panel" id="chatPanel">
+        <div class="chat-head">
+            <div>
+                <b>Madhu's Assistant</b>
+                <span>Ask about work, skills, contact</span>
+            </div>
+            <button id="chatClose" aria-label="Close chat">×</button>
+        </div>
+        <div class="chat-body" id="chatBody"></div>
+        <div class="chat-quick" id="chatQuick">
+            <button data-q="projects">Projects</button>
+            <button data-q="skills">Skills</button>
+            <button data-q="experience">Experience</button>
+            <button data-q="contact">Contact</button>
+        </div>
+        <div class="chat-input-row">
+            <input id="chatInput" type="text" placeholder="Type a message…" autocomplete="off">
+            <button id="chatSend">Send</button>
+        </div>
+    </div>
+
+    <div class="fab-stack">
+        <a class="fab whatsapp" href="https://wa.me/919121450131" target="_blank" rel="noopener"
+            aria-label="Chat on WhatsApp">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.6-.8-1.9-.9-.3-.1-.4-.1-.6.1-.2.3-.7.9-.8 1-.1.2-.3.2-.6.1-.3-.1-1.2-.5-2.3-1.5-.9-.8-1.4-1.7-1.6-2-.1-.3 0-.4.1-.6.1-.1.3-.3.4-.5.1-.1.2-.3.3-.4.1-.2 0-.4 0-.5-.1-.1-.6-1.5-.8-2.1-.2-.5-.4-.5-.6-.5h-.5c-.2 0-.5.1-.7.3-.2.3-.9.9-.9 2.2s1 2.6 1.1 2.7c.1.2 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.6-.7 1.9-1.3.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.6-.3z"/><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.1l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 20.2 12 8.2 8.2 0 0 1 12 20.2z"/></svg>
+        </a>
+        <button class="fab" id="chatFab" aria-label="Open chat assistant">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        </button>
+    </div>
+
+    <div id="ui">
+
+        <section class="panel hero" id="s-hero">
+            <div class="card">
+                <p class="eyebrow">Backend Developer · Laravel / PHP / MySQL</p>
+                <h1>BALAGAM<br>MADHU MAHESH</h1>
+                <p class="tag">Building scalable systems, secure APIs and real-world digital products — from government
+                    platforms to multi-app delivery ecosystems.</p>
+                <div class="cta-row">
+                    <a href="#s-journey" class="btn primary">Explore My Journey</a>
+                    <a href="#s-projects" class="btn ghost">View Projects</a>
+                </div>
+            </div>
+            <div class="scroll-hint">
+                <div class="line"></div>Scroll to walk forward
+            </div>
+        </section>
+
+        <section class="panel" id="s-journey">
+            <div class="card reveal">
+                <p class="eyebrow">The Journey</p>A wall of shipped work.
+                <h2>Two years. Thirty-five systems shipped.</h2>
+                <div class="stat-row" style="margin-top:28px;">
+                    <div class="stat"><b>2+</b><span>Years Experience</span></div>
+                    <div class="stat"><b>55+</b><span>Real-Time Projects</span></div>
+                    <div class="stat"><b>3</b><span>Core Stacks</span></div>
+                </div>
+                <div class="milestones">
+                    <div class="milestone"><b>2024</b>
+                        <p>Diploma → B.Tech complete. First backend role begins at Colourmoon Technologies.</p>
+                    </div>
+                    <div class="milestone"><b>2025</b>
+                        <p>Government platform delivered. Joins Hi-Techsters as Junior Software Developer.</p>
+                    </div>
+                    <div class="milestone"><b>2026</b>
+                        <p>55+ shipped projects across e-commerce, CRM, government and delivery systems.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" id="s-about">
+            <div class="card reveal">
+                <p class="eyebrow">About</p>
+                <h2>Results-driven, built from scratch.</h2>
+                <p style="color:var(--ink-dim); font-size:15.5px; line-height:1.7; margin-top:18px; max-width:520px;">
+                    A results-driven backend developer with two years of experience designing, building and deploying
+                    scalable web applications, robust REST APIs and database-driven backend systems — proficient in
+                    Laravel, PHP, CodeIgniter and MySQL, with a track record of end-to-end delivery on complex
+                    government platforms and multi-app ecosystems.
+                </p>
+                <div class="chip-cloud">
+                    <span class="chip">PHP</span><span class="chip">Laravel</span><span class="chip">CodeIgniter</span>
+                    <span class="chip">MySQL</span><span class="chip">REST APIs</span><span class="chip">JWT</span><span
+                        class="chip">Git</span>
+                        <span
+                        class="chip">Bitbucket</span>
+                </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" id="s-stack">
+            <div class="card reveal">
+                <p class="eyebrow">Tech Stack</p>
+                <h2>The server room.</h2>
+                <p style="color:var(--ink-dim); font-size:14.5px; margin-top:10px;">Every node below has shipped in
+                    production.</p>
+                <div class="chip-cloud">
+                    <span class="chip">PHP</span><span class="chip">Laravel</span><span class="chip">CodeIgniter</span>
+                    <span class="chip">MySQL</span><span class="chip">JavaScript</span><span class="chip">HTML5</span>
+                    <span class="chip">CSS3</span><span class="chip">AJAX</span><span class="chip">Git</span>
+                    <span class="chip">Bitbucket</span><span class="chip">Postman</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" id="s-arch">
+            <div class="card reveal">
+                <p class="eyebrow">Backend Architecture</p>
+                <h2>How a request becomes a response.</h2>
+                <div class="arch-flow">
+                    <div class="arch-step">Client Request <small>HTTPS / JSON</small></div>
+                    <div class="arch-step">REST API <small>routing layer</small></div>
+                    <div class="arch-step">Laravel Controller <small>MVC architecture</small></div>
+                    <div class="arch-step">Authentication <small>JWT · Laravel Auth</small></div>
+                    <div class="arch-step">Business Logic <small>validation · rules</small></div>
+                    <div class="arch-step">MySQL <small>query optimization · indexing</small></div>
+                    <div class="arch-step">External APIs <small>Razorpay · SMS · CRM · Billdesk  </small></div>
+                    <div class="arch-step">Secure JSON Response <small>← back to client</small></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" id="s-projects">
+            <div class="card reveal" style="max-width:600px;">
+                <p class="eyebrow">Projects</p>
+                <h2 style="margin-bottom:22px;">Three buildings in the city.</h2>
+
+                <div class="proj-card">
+                    <h3>Eater-Z</h3>
+                    <div class="role">Multi-App Food &amp; Meat Delivery Ecosystem · Backend Developer</div>
+                    <p>Built from scratch: Customer, Vendor and Rider apps backed by a central admin dashboard. Scalable
+                        REST APIs handle real-time delivery state machines, with Razorpay split payments and
+                        cross-platform push notifications.</p>
+                    <div class="tags"><span>Laravel</span><span>REST APIs</span><span>Razorpay</span><span>Push
+                            Notifications</span></div>
+                </div>
+
+       
+<div class="proj-card">
+    <h3>TSPA</h3>
+    <div class="role">Backend Developer</div>
+    <p>
+        Developed a secure and streamlined digital platform for TSPA, providing comprehensive information
+        about officer training courses, academic resources, articles, and organizational updates.
+    </p>
+    <div class="tags">
+        <span>Laravel</span>
+        <span>Training Platform</span>
+        <span>Content Management</span>
+    </div>
+</div>
+
+<div class="proj-card">
+    <h3>Monarch Ergo</h3>
+    <div class="role">Backend Developer</div>
+    <p>
+        Developed an e-commerce platform for office chairs, height-adjustable tables, and gaming chairs,
+        with product management, order processing, and online shopping functionality.
+    </p>
+    <div class="tags">
+        <span>Laravel</span>
+        <span>E-commerce</span>
+        <span>Order Processing</span>
+    </div>
+</div>
+
+
+            </div>
+        </section>
+
+        <section class="panel" id="s-api">
+            <div class="card reveal">
+                <p class="eyebrow">API World</p>
+                <h2>Hundreds of requests, one architecture.</h2>
+                <div class="arch-flow" style="margin-top:22px;">
+                    <div class="arch-step">Request <small>→</small></div>
+                    <div class="arch-step">Authentication <small>→</small></div>
+                    <div class="arch-step">Controller <small>→</small></div>
+                    <div class="arch-step">Business Logic <small>→</small></div>
+                    <div class="arch-step">Database <small>→</small></div>
+                    <div class="arch-step">Response <small>done</small></div>
+                </div>
+                <div class="chip-cloud">
+                    <span class="chip">Payment Gateway</span><span class="chip">SMS</span><span
+                        class="chip">Logistics</span><span class="chip">CRM</span><span class="chip">Push
+                        Notifications</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" id="s-payment">
+            <div class="card reveal">
+                <p class="eyebrow"> Payment System</p>
+                <h2>Checkout to confirmation, secured.</h2>
+                <div class="arch-flow" style="margin-top:22px;">
+                    <div class="arch-step">Customer <small>initiates</small></div>
+                    <div class="arch-step">Checkout <small>Razorpay</small></div>
+                    <div class="arch-step">Payment Verification <small>signed callback</small></div>
+                    <div class="arch-step">Database Write <small>transaction record</small></div>
+                    <div class="arch-step">Order Confirmation <small>→ notification sent</small></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" id="s-experience">
+            <div class="card reveal" style="max-width:640px;">
+                <p class="eyebrow"> Experience</p>
+                <h2 style="margin-bottom:8px;">Two doors, one hallway.</h2>
+                <div class="door-row">
+                    <div class="door">
+                        <b>Hi-Techsters IT Services Pvt Ltd</b>
+                        <small>Junior Software Developer · June 2025 – Present</small>
+                        <ul>
+                            <li>Backend modules &amp; secure REST APIs for government applications</li>
+                            <li>Real-time payment flows &amp; notification systems</li>
+                            <li>Production deployments &amp; database optimization</li>
+                        </ul>
+                    </div>
+                    <div class="door">
+                        <b>Colourmoon Technologies Pvt Ltd</b>
+                        <small>Junior Backend Developer · May 2024 – April 2025</small>
+                        <ul>
+                            <li>Custom APIs &amp; admin modules in Laravel and CodeIgniter</li>
+                            <li>Secured APIs for 3+ mobile applications</li>
+                            <li>Database tuning, indexing &amp; live-system debugging</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel" id="s-education">
+            <div class="card reveal">
+                <p class="eyebrow">Education</p>
+                <h2>From physical structures to digital ones.</h2>
+                <p style="margin-top:14px; color:var(--ink);"><b>B.Tech, Civil Engineering</b><br><span
+                        style="color:var(--ink-dim); font-size:13.5px;">Visakha Institute of Engineering and Technology
+                        · 2024</span></p>
+                <div class="transition-line"><span>Civil Engineering</span><span class="arrow">— structural logic
+                        carries over →</span><span>Backend Engineering</span></div>
+                <p style="color:var(--ink);"><b>Diploma, Civil Engineering</b><br><span
+                        style="color:var(--ink-dim); font-size:13.5px;">Chaitanya Engineering College · 2021</span></p>
+            </div>
+        </section>
+
+        <section class="panel" id="s-wall">
+            <div class="card reveal" style="max-width:600px;">
+                <p class="eyebrow">55+ Projects</p>
+                <h2>A wall of shipped work.</h2>
+                <div class="wall-grid" id="wallGrid"></div>
+            </div>
+        </section>
+
+        <section class="panel" id="s-desk">
+            <div class="card reveal">
+                <p class="eyebrow"> The Developer Desk</p>
+                <h2>Where it all gets built.</h2>
+                <div class="chip-cloud"><span class="chip">Laravel</span><span class="chip">PHP</span><span
+                        class="chip">MySQL</span><span class="chip">REST API</span></div>
+                <p class="code-line">Let's build something meaningful.<span class="typed-cursor"></span></p>
+            </div>
+        </section>
+
+        <footer class="end panel" id="s-contact"
+            style="align-items:center; justify-content:center; text-align:center; flex-direction:column;">
+            <div class="card reveal" style="text-align:left;">
+                <p class="eyebrow" style="justify-content:center;">Contact</p>
+                <h2 style="text-align:center;">Have a project in mind?<br>Let's build it.</h2>
+                <div class="contact-links" style="align-items:flex-start; margin:26px auto 0; width:fit-content;">
+                    <div><span>Email</span><a href="mailto:madhubalagam16@gmail.com">madhubalagam16@gmail.com</a></div>
+                    <div><span>Phone</span><a href="tel:+919121450131">+91 91214 50131</a></div>
+                    <div><span>LinkedIn</span><a href="https://linkedin.com/in/madhu-mahesh-balagam-467106298"
+                            target="_blank" rel="noopener">linkedin.com/in/madhu-mahesh-balagam</a></div>
+                    <!--<div><span>WhatsApp</span><a href="https://wa.me/919121450131" target="_blank"-->
+                    <!--        rel="noopener">wa.me/919121450131</a></div>-->
+                    <div><span>Based in</span><span style="color:var(--ink-dim); width:auto;">Visakhapatnam,
+                            India</span></div>
+                </div>
+                <div class="cta-row" style="justify-content:center; margin-top:32px;">
+                    <a href="mailto:madhubalagam16@gmail.com" class="btn primary">Let's Connect</a>
+                    <a href="https://wa.me/919121450131" target="_blank" rel="noopener" class="btn ghost">Message on WhatsApp</a>
+                </div>
+            </div>
+            <h2 style="margin-top:14vh; opacity:.5;">BALAGAM MADHU MAHESH</h2>
+            <div class="role2">Backend Developer · Laravel · PHP · MySQL</div>
+        </footer>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        /* ---------- loader ---------- */
+        const loadbar = document.getElementById('loadbar');
+        let lp = 0;
+        const loadInt = setInterval(() => { lp += Math.random() * 18; if (lp > 100) lp = 100; loadbar.style.width = lp + '%'; if (lp >= 100) { clearInterval(loadInt); setTimeout(() => { document.getElementById('loader').style.opacity = 0; setTimeout(() => document.getElementById('loader').remove(), 800); }, 250); } }, 130);
+
+        /* ---------- custom cursor ---------- */
+        const cur = document.getElementById('cursor');
+        window.addEventListener('mousemove', e => { cur.style.left = e.clientX + 'px'; cur.style.top = e.clientY + 'px'; });
+        document.querySelectorAll('a,button').forEach(el => {
+            el.addEventListener('mouseenter', () => cur.classList.add('big'));
+            el.addEventListener('mouseleave', () => cur.classList.remove('big'));
+        });
+
+        /* ---------- scroll reveal ---------- */
+        const revealEls = document.querySelectorAll('.reveal');
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach(en => { if (en.isIntersecting) en.target.classList.add('in'); });
+        }, { threshold: 0.2 });
+        revealEls.forEach(el => io.observe(el));
+
+        /* ---------- nav dots ---------- */
+        const panels = Array.from(document.querySelectorAll('.panel'));
+        const dotsNav = document.getElementById('dots');
+        panels.forEach(p => {
+            const a = document.createElement('a');
+            a.href = '#' + p.id;
+            dotsNav.appendChild(a);
+        });
+        const dotEls = Array.from(dotsNav.children);
+        function updateDots() {
+            let idx = 0, best = Infinity;
+            panels.forEach((p, i) => { const r = p.getBoundingClientRect(); const d = Math.abs(r.top); if (d < best) { best = d; idx = i; } });
+            dotEls.forEach((d, i) => d.classList.toggle('active', i === idx));
+        }
+
+        /* ---------- 55+ project wall ---------- */
+        const categories = [
+              'AI Integrations',
+   
+    'CRM',
+    'ERP',
+    'LMS',
+     'E-Commerce',
+    'Service Platforms',
+    'Government Systems',
+    'Delivery Platforms',
+    'Admin Dashboards',
+    'API Systems',
+    'Multi-Vendor Applications',
+    'Push Notifications',
+     'Mobile App Backends',
+      'Job Portals',
+    'CMS'
+];
+
+const wallGrid = document.getElementById('wallGrid');
+
+for (let i = 0; i < 15; i++) {
+    const node = document.createElement('div');
+    node.className = 'wall-node';
+    node.textContent = categories[i % categories.length];
+    wallGrid.appendChild(node);
+}
+
+        /* =========================================================
+           THREE.JS — cinematic scroll-driven scene
+           ========================================================= */
+        const canvas = document.getElementById('scene');
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+        const isMobile = window.matchMedia('(max-width:800px)').matches;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+        scene.fog = new THREE.FogExp2(0x000000, 0.028);
+
+        const camera = new THREE.PerspectiveCamera(52, window.innerWidth / window.innerHeight, 0.1, 400);
+
+        /* lights */
+        scene.add(new THREE.AmbientLight(0x1a1a1a, 1.1));
+        const key = new THREE.DirectionalLight(0x06d30c, 1.1); key.position.set(6, 10, 4); scene.add(key);
+        const rim = new THREE.PointLight(0xffffff, 2.2, 60); rim.position.set(-6, 6, -4); scene.add(rim);
+        const floorGlow = new THREE.PointLight(0x06d30c, 1.6, 40); floorGlow.position.set(0, 1, 2); scene.add(floorGlow);
+
+        /* ground path */
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.9, metalness: 0.1 });
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(3000, 40, 1, 1), groundMat);
+        ground.rotation.x = -Math.PI / 2; ground.position.y = 0;
+        scene.add(ground);
+
+        /* faint grid lines on ground */
+        const gridHelper = new THREE.GridHelper(3000, 300, 0x06d30c, 0x111111);
+        gridHelper.position.y = 0.01;
+        scene.add(gridHelper);
+
+        /* ---------- helper: edge-glow wireframe overlay ---------- */
+        function addEdges(mesh, color) {
+            const eg = new THREE.EdgesGeometry(mesh.geometry);
+            const line = new THREE.LineSegments(eg, new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.85 }));
+            mesh.add(line);
+            return line;
+        }
+
+        /* ---------- helper: text sprite label ---------- */
+        function makeLabel(text, color) {
+            const c = document.createElement('canvas'); c.width = 512; c.height = 128;
+            const ctx = c.getContext('2d');
+            ctx.font = '600 44px JetBrains Mono, monospace';
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(text, 256, 64);
+            const tex = new THREE.CanvasTexture(c);
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+            const sp = new THREE.Sprite(mat);
+            sp.scale.set(4.2, 1.05, 1);
+            return sp;
+        }
+
+        /* ---------- helper: tech badge sprite (premium glass HUD chip with an abbreviation) ---------- */
+        const TECH_STACK = [
+            { short: 'VS',  full: 'VS CODE',     color: '#2ea3ff', color2: '#7fd4ff' },
+            { short: 'PHP', full: 'PHP',         color: '#9b7bff', color2: '#c9b6ff' },
+            { short: 'LV',  full: 'LARAVEL',     color: '#ff4d6d', color2: '#ff9fb0' },
+            { short: 'CI',  full: 'CODEIGNITER', color: '#ff8a1f', color2: '#ffc98a' },
+            { short: 'SQL', full: 'MYSQL',       color: '#1fb6ff', color2: '#8fe2ff' },
+            { short: 'AJ',  full: 'AJAX',        color: '#ffd23f', color2: '#fff0ad' },
+            { short: 'PM',  full: 'POSTMAN',     color: '#ff5f2e', color2: '#ffb08a' },
+        ];
+
+        /* draws a dashed HUD tick-ring into its own canvas so it can spin independently of the badge */
+        function makeRingSprite(color) {
+            const size = 320;
+            const c = document.createElement('canvas'); c.width = size; c.height = size;
+            const ctx = c.getContext('2d');
+            const cx = size / 2, cy = size / 2, r = size * 0.46;
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.4;
+            ctx.globalAlpha = 0.75;
+            const dashCount = 30;
+            for (let i = 0; i < dashCount; i++) {
+                if (i % 3 === 0) continue; // gaps for a HUD-dashed look
+                const a0 = (i / dashCount) * Math.PI * 2;
+                const a1 = ((i + 0.6) / dashCount) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, a0, a1);
+                ctx.stroke();
+            }
+            /* a few longer accent ticks */
+            ctx.globalAlpha = 1;
+            ctx.lineWidth = 3;
+            for (let i = 0; i < 4; i++) {
+                const a = (i / 4) * Math.PI * 2;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(a) * (r - 10), cy + Math.sin(a) * (r - 10));
+                ctx.lineTo(cx + Math.cos(a) * (r + 10), cy + Math.sin(a) * (r + 10));
+                ctx.stroke();
+            }
+
+            const tex = new THREE.CanvasTexture(c);
+            tex.minFilter = THREE.LinearFilter;
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, opacity: 0.9 });
+            const sp = new THREE.Sprite(mat);
+            sp.scale.set(1.32, 1.32, 1);
+            return sp;
+        }
+
+        function makeTechBadge(tech, opts) {
+            opts = opts || {};
+            const size = 320;
+            const c = document.createElement('canvas'); c.width = size; c.height = size;
+            const ctx = c.getContext('2d');
+            const cx = size / 2, cy = size / 2;
+
+            /* layered outer bloom — two passes for a richer, more saturated glow */
+            let grad = ctx.createRadialGradient(cx, cy, size * 0.06, cx, cy, size * 0.5);
+            grad.addColorStop(0, tech.color + 'ff');
+            grad.addColorStop(0.28, tech.color + 'aa');
+            grad.addColorStop(0.55, tech.color + '38');
+            grad.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad;
+            ctx.beginPath(); ctx.arc(cx, cy, size * 0.5, 0, Math.PI * 2); ctx.fill();
+
+            /* thin bright rim just outside the badge disc */
+            ctx.beginPath(); ctx.arc(cx, cy, size * 0.31, 0, Math.PI * 2);
+            ctx.strokeStyle = tech.color2 || tech.color;
+            ctx.globalAlpha = 0.55;
+            ctx.lineWidth = 10;
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+
+            /* dark glass badge disc with subtle vertical gradient (depth) */
+            const discGrad = ctx.createLinearGradient(0, cy - size * 0.28, 0, cy + size * 0.28);
+            discGrad.addColorStop(0, 'rgba(22,22,22,0.96)');
+            discGrad.addColorStop(1, 'rgba(2,2,2,0.98)');
+            ctx.beginPath(); ctx.arc(cx, cy, size * 0.28, 0, Math.PI * 2);
+            ctx.fillStyle = discGrad;
+            ctx.fill();
+            ctx.lineWidth = 3.5;
+            ctx.strokeStyle = tech.color;
+            ctx.stroke();
+
+            /* glass specular highlight, top-left arc */
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, size * 0.27, Math.PI * 1.05, Math.PI * 1.55);
+            ctx.strokeStyle = 'rgba(255,255,255,0.55)';
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.restore();
+
+            /* short code */
+            ctx.font = '700 62px JetBrains Mono, monospace';
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = tech.color;
+            ctx.shadowBlur = 18;
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(tech.short, cx, cy - 10);
+            ctx.shadowBlur = 0;
+
+            /* full name, small caps beneath */
+            ctx.font = '600 20px JetBrains Mono, monospace';
+            ctx.fillStyle = tech.color2 || tech.color;
+            ctx.fillText(tech.full, cx, cy + 34);
+
+            const tex = new THREE.CanvasTexture(c);
+            tex.minFilter = THREE.LinearFilter;
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+            const sp = new THREE.Sprite(mat);
+            sp.scale.set(0.95, 0.95, 1);
+            sp.userData.tech = tech;
+            sp.userData.bobOffset = Math.random() * Math.PI * 2;
+            sp.userData.spinSpeed = 0.4 + Math.random() * 0.6;
+            sp.userData.pulseSpeed = 0.8 + Math.random() * 0.5;
+
+            if (opts.ring !== false) {
+                const ring = makeRingSprite(tech.color);
+                ring.userData.isRing = true;
+                ring.userData.spin = (Math.random() > 0.5 ? 1 : -1) * (0.15 + Math.random() * 0.2);
+                sp.add(ring);
+            }
+            return sp;
+        }
+
+        /* replaces the old plain glowing icosahedron "ball" helper — now returns a premium tech badge
+           sprite, cycling through the stack (VS Code, PHP, Laravel, CodeIgniter, MySQL, AJAX, Postman)
+           so the pattern stays readable as you scroll past each station. Dense clusters (the 55+ wall)
+           skip the extra rotating ring to keep things crisp rather than busy. */
+        let techCycle = 0;
+        function icos(color, opts) {
+            const tech = TECH_STACK[techCycle % TECH_STACK.length];
+            techCycle++;
+            return makeTechBadge(tech, opts);
+        }
+
+        /* =========================================================
+           CHARACTER — geometric figure traced in light
+           ========================================================= */
+        const bodyColor = 0x111111;
+        const edgeColor = 0x06d30c;
+        const edgeColor2 = 0xffffff;
+        const bodyMat = new THREE.MeshStandardMaterial({ color: bodyColor, roughness: 0.55, metalness: 0.4, emissive: 0x050505, emissiveIntensity: 0.6 });
+
+        const dev = new THREE.Group();
+
+        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.32, 0.85, 10), bodyMat.clone());
+        torso.position.y = 1.55; dev.add(torso); addEdges(torso, edgeColor);
+
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 14, 14), bodyMat.clone());
+        head.position.y = 2.15; dev.add(head); addEdges(head, edgeColor2);
+
+        const backpack = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.5, 0.2), bodyMat.clone());
+        backpack.position.set(0, 1.55, -0.28); dev.add(backpack); addEdges(backpack, edgeColor);
+
+        const hip = new THREE.Group(); hip.position.y = 1.1; dev.add(hip);
+
+        function makeLimb(len, rad, color) {
+            const pivot = new THREE.Group();
+            const m = new THREE.Mesh(new THREE.CylinderGeometry(rad, rad * 0.85, len, 8), bodyMat.clone());
+            m.position.y = -len / 2;
+            pivot.add(m); addEdges(m, color);
+            return pivot;
+        }
+        const legL = makeLimb(0.78, 0.09, edgeColor2); legL.position.set(-0.13, 0, 0); hip.add(legL);
+        const legR = makeLimb(0.78, 0.09, edgeColor2); legR.position.set(0.13, 0, 0); hip.add(legR);
+
+        const shoulder = new THREE.Group(); shoulder.position.y = 1.9; dev.add(shoulder);
+        const armL = makeLimb(0.62, 0.075, edgeColor); armL.position.set(-0.32, 0, 0); shoulder.add(armL);
+        const armR = makeLimb(0.62, 0.075, edgeColor); armR.position.set(0.32, 0, 0); shoulder.add(armR);
+
+        /* laptop held in right arm */
+        const laptop = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.02, 0.18), new THREE.MeshStandardMaterial({ color: 0x0d0d0d, emissive: 0xffffff, emissiveIntensity: 0.4 }));
+        laptop.position.set(0, -0.62, 0.14);
+        armR.children[0].add(laptop); addEdges(laptop, edgeColor2);
+
+        dev.scale.set(1.15, 1.15, 1.15);
+        scene.add(dev);
+
+        /* soft point light attached to the character for a personal glow */
+        const devGlow = new THREE.PointLight(0x06d30c, 1.4, 6);
+        devGlow.position.set(0, 1.6, 0.4);
+        dev.add(devGlow);
+
+        /* =========================================================
+           PATH — the road the character (and camera) travel along
+           ========================================================= */
+        const STATION_COUNT = panels.length; // matches DOM sections 1:1
+        const SPACING = 26;
+        const pathPoints = [];
+        for (let i = 0; i < STATION_COUNT; i++) {
+            const x = Math.sin(i * 0.7) * 6;
+            const y = 0;
+            const z = -i * SPACING;
+            pathPoints.push(new THREE.Vector3(x, y, z));
+        }
+        const curve = new THREE.CatmullRomCurve3(pathPoints, false, 'catmullrom', 0.4);
+
+        /* road ribbon following the curve (visual path) */
+        const roadPts = curve.getPoints(STATION_COUNT * 20);
+        const roadShape = new THREE.Shape();
+        roadShape.moveTo(-1.1, 0); roadShape.lineTo(1.1, 0);
+        const roadGeo = new THREE.BufferGeometry();
+        {
+            const positions = [];
+            for (let i = 0; i < roadPts.length - 1; i++) {
+                const p0 = roadPts[i], p1 = roadPts[i + 1];
+                const dir = new THREE.Vector3().subVectors(p1, p0).normalize();
+                const perp = new THREE.Vector3(-dir.z, 0, dir.x).multiplyScalar(1.3);
+                positions.push(p0.x - perp.x, 0.02, p0.z - perp.z, p0.x + perp.x, 0.02, p0.z + perp.z, p1.x - perp.x, 0.02, p1.z - perp.z);
+                positions.push(p1.x - perp.x, 0.02, p1.z - perp.z, p0.x + perp.x, 0.02, p0.z + perp.z, p1.x + perp.x, 0.02, p1.z + perp.z);
+            }
+            roadGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            roadGeo.computeVertexNormals();
+        }
+        const roadMat = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.6, metalness: 0.3, emissive: 0x06d30c, emissiveIntensity: 0.1 });
+        const road = new THREE.Mesh(roadGeo, roadMat);
+        scene.add(road);
+
+        /* ---------- station decor ---------- */
+        const stationGroups = [];
+        const stationConfigs = [
+            { label: '', shapes: 'orbit', color: edgeColor },
+            { label: 'JOURNEY', shapes: 'markers', color: edgeColor2 },
+            { label: 'ABOUT', shapes: 'orbit', color: edgeColor },
+            { label: 'STACK', shapes: 'ring', color: edgeColor2 },
+            { label: 'ARCHITECTURE', shapes: 'tower', color: edgeColor },
+            { label: 'PROJECTS', shapes: 'buildings', color: edgeColor2 },
+            { label: 'API WORLD', shapes: 'particles', color: edgeColor },
+            { label: 'PAYMENT', shapes: 'torus', color: 0x06d30c },
+            { label: 'EXPERIENCE', shapes: 'doors', color: edgeColor },
+            { label: 'EDUCATION', shapes: 'library', color: edgeColor2 },
+            { label: '55+ PROJECTS', shapes: 'wall', color: edgeColor },
+            { label: 'DESK', shapes: 'desk', color: 0x06d30c },
+            { label: 'CONTACT', shapes: 'orbit', color: edgeColor2 },
+        ];
+
+        for (let i = 0; i < STATION_COUNT; i++) {
+            const cfg = stationConfigs[i % stationConfigs.length];
+            const center = pathPoints[Math.min(i, pathPoints.length - 1)];
+            const g = new THREE.Group();
+            g.position.copy(center);
+
+            if (cfg.shapes === 'orbit' || cfg.shapes === 'markers') {
+                for (let k = 0; k < 6; k++) {
+                    const s = icos(cfg.color);
+                    const ang = (k / 6) * Math.PI * 2;
+                    s.position.set(Math.cos(ang) * 3.2, 1.6 + Math.sin(k) * 0.6, Math.sin(ang) * 3.2);
+                    g.add(s);
+                }
+            } else if (cfg.shapes === 'ring') {
+                for (let k = 0; k < 10; k++) {
+                    const s = icos(k % 2 ? edgeColor : edgeColor2);
+                    const ang = (k / 10) * Math.PI * 2;
+                    s.position.set(Math.cos(ang) * 4, 1.4, Math.sin(ang) * 4);
+                    g.add(s);
+                }
+            } else if (cfg.shapes === 'tower') {
+                for (let k = 0; k < 6; k++) {
+                    const box = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), new THREE.MeshStandardMaterial({ color: 0x111111, emissive: cfg.color, emissiveIntensity: 0.4 }));
+                    box.position.set(2.6, 0.5 + k * 0.7, 0);
+                    addEdges(box, cfg.color);
+                    g.add(box);
+                }
+            } else if (cfg.shapes === 'buildings') {
+                const heights = [4.5, 6.2, 3.6];
+                heights.forEach((h, k) => {
+                    const b = new THREE.Mesh(new THREE.BoxGeometry(1.6, h, 1.6), new THREE.MeshStandardMaterial({ color: 0x0d0d0d, emissive: 0x06d30c, emissiveIntensity: 0.35 }));
+                    b.position.set(-4 + k * 4, h / 2, -1.5);
+                    addEdges(b, k % 2 ? edgeColor2 : edgeColor);
+                    g.add(b);
+                });
+            } else if (cfg.shapes === 'particles') {
+                const count = isMobile ? 200 : 500;
+                const pos = new Float32Array(count * 3);
+                for (let p = 0; p < count; p++) {
+                    pos[p * 3] = (Math.random() - 0.5) * 14;
+                    pos[p * 3 + 1] = Math.random() * 6;
+                    pos[p * 3 + 2] = (Math.random() - 0.5) * 14;
+                }
+                const geo = new THREE.BufferGeometry();
+                geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+                const mat = new THREE.PointsMaterial({ color: edgeColor2, size: 0.06, transparent: true, opacity: 0.8 });
+                const pts = new THREE.Points(geo, mat);
+                pts.userData.isParticles = true;
+                g.add(pts);
+            } else if (cfg.shapes === 'torus') {
+                const t = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.05, 8, 40), new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0x06d30c, emissiveIntensity: 0.7 }));
+                t.rotation.x = Math.PI / 2; t.position.y = 1.6;
+                g.add(t); g.userData.torus = t;
+            } else if (cfg.shapes === 'doors') {
+                [-2.4, 2.4].forEach(x => {
+                    const d = new THREE.Mesh(new THREE.BoxGeometry(1.6, 3.6, 0.2), new THREE.MeshStandardMaterial({ color: 0x0d0d0d, emissive: edgeColor, emissiveIntensity: 0.3 }));
+                    d.position.set(x, 1.8, -2);
+                    addEdges(d, edgeColor);
+                    g.add(d);
+                });
+            } else if (cfg.shapes === 'library') {
+                for (let k = 0; k < 5; k++) {
+                    const col = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.18, 3.4, 8), new THREE.MeshStandardMaterial({ color: 0x0d0d0d, emissive: edgeColor2, emissiveIntensity: 0.3 }));
+                    col.position.set(-4 + k * 2, 1.7, -2);
+                    addEdges(col, edgeColor2);
+                    g.add(col);
+                }
+            } else if (cfg.shapes === 'wall') {
+                const count = 35;
+                for (let k = 0; k < count; k++) {
+                    const s = icos(k % 2 ? edgeColor : edgeColor2, { ring: false });
+                    s.scale.multiplyScalar(0.62);
+                    const cx = (k % 7 - 3) * 1.1, cy = Math.floor(k / 7) * 1.1 + 1;
+                    s.position.set(cx, cy, -3);
+                    g.add(s);
+                }
+            } else if (cfg.shapes === 'desk') {
+                const desk = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.1, 1.1), new THREE.MeshStandardMaterial({ color: 0x141414 }));
+                desk.position.set(0, 1.0, 0.4);
+                g.add(desk); addEdges(desk, edgeColor);
+                const monitor = new THREE.Mesh(new THREE.PlaneGeometry(1.3, 0.8), new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffffff, emissiveIntensity: 0.6, side: THREE.DoubleSide }));
+                monitor.position.set(0, 1.7, -0.1);
+                g.add(monitor);
+
+                /* the full tech-stack ring hovering around the desk station */
+                TECH_STACK.forEach((tech, k) => {
+                    const s = makeTechBadge(tech);
+                    s.scale.multiplyScalar(0.55);
+                    const ang = (k / TECH_STACK.length) * Math.PI * 2;
+                    s.position.set(Math.cos(ang) * 2.6, 2.2 + Math.sin(k) * 0.3, Math.sin(ang) * 2.6 - 1);
+                    g.add(s);
+                });
+            }
+
+            const lbl = makeLabel(cfg.label, '#06d30c');
+            lbl.position.set(0, 3.4, 0);
+            g.add(lbl);
+
+            scene.add(g);
+            stationGroups.push(g);
+        }
+
+        /* distant city skyline for depth */
+        const skyline = new THREE.Group();
+        for (let i = 0; i < 40; i++) {
+            const h = 3 + Math.random() * 14;
+            const b = new THREE.Mesh(new THREE.BoxGeometry(1.5, h, 1.5), new THREE.MeshStandardMaterial({ color: 0x0a0a0a, emissive: 0x06d30c, emissiveIntensity: 0.2 }));
+            b.position.set((Math.random() - 0.5) * 160, h / 2, -Math.random() * STATION_COUNT * SPACING - 20);
+            b.position.x += Math.sin(-b.position.z * 0.02) * 10;
+            skyline.add(b);
+        }
+        scene.add(skyline);
+
+        /* =========================================================
+           SCROLL-DRIVEN ANIMATION LOOP
+           ========================================================= */
+        let targetT = 0, currentT = 0;
+        function computeScrollT() {
+            const max = document.documentElement.scrollHeight - window.innerHeight;
+            return max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0;
+        }
+        window.addEventListener('scroll', () => { targetT = computeScrollT(); updateDots(); }, { passive: true });
+
+        const tmpTangent = new THREE.Vector3();
+        const tmpUp = new THREE.Vector3(0, 1, 0);
+        const camOffset = new THREE.Vector3();
+        let walkPhase = 0;
+        let lastT = 0;
+
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = Math.min(clock.getDelta(), 0.05);
+
+            currentT += (targetT - currentT) * 0.07;
+
+            const point = curve.getPointAt(Math.min(currentT, 0.999));
+            const tangent = curve.getTangentAt(Math.min(currentT, 0.999)).normalize();
+
+            dev.position.set(point.x, point.y, point.z);
+            const lookTarget = new THREE.Vector3().copy(point).add(tangent);
+            dev.lookAt(lookTarget.x, dev.position.y, lookTarget.z);
+
+            /* walk cycle speed proportional to scroll velocity, keeps subtle idle motion otherwise */
+            const speed = Math.abs(currentT - lastT) * 4000;
+            lastT = currentT;
+            walkPhase += dt * (3.2 + Math.min(speed, 10));
+            const swing = Math.sin(walkPhase) * 0.55;
+            legL.rotation.x = swing; legR.rotation.x = -swing;
+            armR.rotation.x = -swing * 0.8; armL.rotation.x = swing * 0.8;
+            dev.position.y = point.y + Math.abs(Math.sin(walkPhase * 2)) * 0.04;
+            head.rotation.y = Math.sin(walkPhase * 0.5) * 0.15;
+
+            /* camera cinematic follow */
+            camOffset.set(0, 2.6, 6.2);
+            const camTargetPos = new THREE.Vector3().copy(dev.position).add(
+                new THREE.Vector3(-tangent.x, 0, -tangent.z).multiplyScalar(camOffset.z)
+            );
+            camTargetPos.y += camOffset.y;
+            camTargetPos.x += Math.sin(currentT * 40) * 0.15; // subtle handheld parallax
+            camera.position.lerp(camTargetPos, 0.06);
+            const lookAt = new THREE.Vector3().copy(dev.position).add(new THREE.Vector3(0, 1.3, 0));
+            camera.lookAt(lookAt);
+
+            /* station decor animation */
+            stationGroups.forEach((g, i) => {
+                g.rotation.y += dt * 0.15;
+                g.children.forEach(c => {
+                    if (c.userData && c.userData.isParticles) {
+                        c.rotation.y += dt * 0.05;
+                        const arr = c.geometry.attributes.position.array;
+                        for (let p = 1; p < arr.length; p += 3) { arr[p] += Math.sin(walkPhase + p) * 0.002; }
+                        c.geometry.attributes.position.needsUpdate = true;
+                    }
+                    /* gentle bob + soft pulse for tech-badge sprites so they feel alive and premium
+                       without spinning into blur; the HUD ring child spins independently */
+                    if (c.userData && c.userData.tech) {
+                        c.position.y += Math.sin(clock.elapsedTime * c.userData.spinSpeed + c.userData.bobOffset) * 0.003;
+                        const pulse = 1 + Math.sin(clock.elapsedTime * c.userData.pulseSpeed + c.userData.bobOffset) * 0.045;
+                        const base = c.userData.baseScale || (c.userData.baseScale = c.scale.x);
+                        c.scale.set(base * pulse, base * pulse, 1);
+                        const ring = c.children.find(ch => ch.userData && ch.userData.isRing);
+                        if (ring) ring.material.rotation += dt * ring.userData.spin;
+                    }
+                });
+                if (g.userData.torus) { g.userData.torus.rotation.z += dt * 0.6; }
+            });
+
+            rim.position.x = Math.sin(clock.elapsedTime * 0.3) * 10;
+            floorGlow.position.set(dev.position.x, 1.5, dev.position.z + 2);
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        targetT = computeScrollT();
+        updateDots();
+
+        /* =========================================================
+           CHATBOT — lightweight rule-based assistant
+           ========================================================= */
+        (function () {
+            const fab = document.getElementById('chatFab');
+            const panel = document.getElementById('chatPanel');
+            const closeBtn = document.getElementById('chatClose');
+            const body = document.getElementById('chatBody');
+            const input = document.getElementById('chatInput');
+            const sendBtn = document.getElementById('chatSend');
+            const quick = document.getElementById('chatQuick');
+
+            const KB = {
+                projects: "Madhu has shipped 55+ projects. Highlights: **Eater-Z** (a multi-app food & meat delivery ecosystem with customer, vendor & rider apps, Razorpay split payments), **Telangana Government — Police Academy** (secure internal portal with role-based access), and **Monarch Ergo** (migrated a WordPress store to Laravel with Razorpay checkout).",
+                skills: "Core stack: PHP, Laravel, CodeIgniter, MySQL, REST APIs, JWT auth, JavaScript, HTML5/CSS3, AJAX, Git & Bitbucket, Postman.",
+                experience: "Currently a Junior Software Developer at Hi-Techsters IT Services (June 2025–present), building backend modules & secure REST APIs for government applications. Before that, Junior Backend Developer at Colourmoon Technologies (May 2024–April 2025).",
+                education: "B.Tech in Civil Engineering from Visakha Institute of Engineering and Technology (2024), and a Diploma in Civil Engineering from Chaitanya Engineering College (2021) — before moving into backend development.",
+                contact: "You can reach Madhu at madhubalagam16@gmail.com, call +91 91214 50131, message on WhatsApp (wa.me/919121450131), or connect on LinkedIn — links are in the Contact section below.",
+                about: "Madhu is a results-driven backend developer with 2+ years of experience building scalable web apps, REST APIs and database-driven systems, with Laravel, PHP, CodeIgniter and MySQL.",
+            };
+
+            function addMsg(text, who) {
+                const el = document.createElement('div');
+                el.className = 'chat-msg ' + who;
+                el.innerHTML = text;
+                body.appendChild(el);
+                body.scrollTop = body.scrollHeight;
+            }
+
+            function botReply(raw) {
+                const q = raw.toLowerCase();
+                let reply;
+                if (/project|eater|police|monarch|ergo|work sample|portfolio/.test(q)) reply = KB.projects;
+                else if (/skill|stack|tech|laravel|php|mysql|language/.test(q)) reply = KB.skills;
+                else if (/experience|job|role|hi-tech|colourmoon|company/.test(q)) reply = KB.experience;
+                else if (/educat|degree|college|b\.?tech|diploma|study/.test(q)) reply = KB.education;
+                else if (/contact|email|phone|whatsapp|linkedin|reach|hire|connect/.test(q)) reply = KB.contact;
+                else if (/who|about|yourself|madhu/.test(q)) reply = KB.about;
+                else if (/hi|hello|hey/.test(q)) reply = "Hey! I'm a quick assistant for Madhu's portfolio. Ask me about projects, skills, experience or how to get in touch.";
+                else reply = "I can help with: projects, skills, experience, education or contact info. Try one of the quick buttons below, or email madhubalagam16@gmail.com directly.";
+                setTimeout(() => addMsg(reply, 'bot'), 350);
+            }
+
+            function openPanel() {
+                panel.classList.add('open');
+                if (!body.dataset.greeted) {
+                    addMsg("Hi, I'm a quick assistant for Madhu Mahesh's portfolio. Ask me about his projects, skills, experience or contact details.", 'bot');
+                    body.dataset.greeted = '1';
+                }
+                input.focus();
+            }
+            function closePanel() { panel.classList.remove('open'); }
+
+            fab.addEventListener('click', () => { panel.classList.contains('open') ? closePanel() : openPanel(); });
+            closeBtn.addEventListener('click', closePanel);
+
+            function submitMsg(text) {
+                if (!text.trim()) return;
+                addMsg(text, 'user');
+                botReply(text);
+                input.value = '';
+            }
+
+            sendBtn.addEventListener('click', () => submitMsg(input.value));
+            input.addEventListener('keydown', e => { if (e.key === 'Enter') submitMsg(input.value); });
+            quick.querySelectorAll('button').forEach(b => {
+                b.addEventListener('click', () => submitMsg(b.textContent));
+            });
+        })();
+    </script>
+</body>
+
+</html>
